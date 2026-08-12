@@ -215,6 +215,8 @@ class DownloadDemoQueue {
         transformStream = zlib.createGunzip();
       } else if (demoUrl.endsWith('.bz2')) {
         transformStream = b2();
+      } else if (demoUrl.endsWith('.zst')) {
+        transformStream = zlib.createZstdDecompress();
       } else if (demoUrl.endsWith('.zip')) {
         transformStream = unzipper.ParseOne();
       } else {
