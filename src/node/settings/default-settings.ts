@@ -8,17 +8,12 @@ import { VideoContainer } from 'csdm/common/types/video-container';
 import { RecordingSystem } from 'csdm/common/types/recording-system';
 import { RecordingOutput } from 'csdm/common/types/recording-output';
 import { DisplayMode } from 'csdm/common/types/display-mode';
+import { defaultPgliteDatabaseSettings } from './default-database-settings';
 
 export const defaultSettings: Settings = {
   schemaVersion: CURRENT_SCHEMA_VERSION,
   autoDownloadUpdates: true,
-  database: {
-    hostname: '127.0.0.1',
-    port: 5432,
-    username: 'postgres',
-    password: 'password',
-    database: 'csdm',
-  },
+  database: defaultPgliteDatabaseSettings,
   folders: [],
   autoExtractDemosFromArchives: [],
   demos: {

@@ -8,6 +8,7 @@ import { build } from 'vite-plus';
 import esbuild from 'esbuild';
 import nativeNodeModulesPlugin from './esbuild-native-node-modules-plugin.mjs';
 import { node } from './electron-vendors.mjs';
+import { copyPgliteAssets, pgliteBanner, pgliteDefine } from './pglite.mjs';
 
 const rootFolderPath = fileURLToPath(new URL('..', import.meta.url));
 const srcFolderPath = path.resolve(rootFolderPath, 'src');
@@ -87,15 +88,19 @@ async function buildWebSocketServerBundle() {
     ],
     define: {
       ...commonDefine,
+      ...pgliteDefine,
       'process.env.STEAM_API_KEYS': `"${process.env.STEAM_API_KEYS}"`,
       'process.env.FACEIT_API_KEY': `"${process.env.FACEIT_API_KEY}"`,
     },
+    banner: pgliteBanner,
     alias: {
       // Force fdir to use the CJS version to avoid createRequire(import.meta.url) not working
       fdir: './node_modules/fdir/dist/index.cjs',
     },
     plugins: [nativeNodeModulesPlugin],
   });
+
+  await copyPgliteAssets(outFolderPath);
 }
 
 async function buildMainProcessBundle() {
@@ -152,9 +157,11 @@ async function buildCliBundle() {
     mainFields: ['module', 'main'],
     define: {
       ...commonDefine,
+      ...pgliteDefine,
       'process.env.STEAM_API_KEYS': `"${process.env.STEAM_API_KEYS}"`,
       'process.env.FACEIT_API_KEY': `"${process.env.FACEIT_API_KEY}"`,
     },
+    banner: pgliteBanner,
     external: ['pg-native', '@aws-sdk/client-s3'],
     alias: {
       // Force fdir to use the CJS version to avoid createRequire(import.meta.url) not working

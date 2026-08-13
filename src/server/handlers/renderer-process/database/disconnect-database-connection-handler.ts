@@ -1,9 +1,9 @@
-import { db } from 'csdm/node/database/database';
+import { closeDatabaseConnection } from 'csdm/node/database/database';
 import { stopBackgroundTasks } from 'csdm/server/start-background-tasks';
 
 export async function disconnectDatabaseConnectionHandler() {
   try {
-    await db.destroy();
+    await closeDatabaseConnection();
     stopBackgroundTasks();
   } catch (error) {
     logger.error('Error while disconnection database connection');

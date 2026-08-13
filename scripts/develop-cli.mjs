@@ -5,10 +5,13 @@ import { fileURLToPath } from 'node:url';
 import esbuild from 'esbuild';
 import { node } from './electron-vendors.mjs';
 import nativeNodeModulesPlugin from './esbuild-native-node-modules-plugin.mjs';
+import { copyPgliteAssets, pgliteBanner, pgliteDefine } from './pglite.mjs';
 
 const rootFolderPath = fileURLToPath(new URL('..', import.meta.url));
 const outFolderPath = path.resolve(rootFolderPath, 'out');
 const srcFolderPath = path.resolve(rootFolderPath, 'src');
+
+await copyPgliteAssets(outFolderPath);
 
 const context = await esbuild.context({
   entryPoints: [path.join(srcFolderPath, 'cli/cli.ts')],
@@ -20,9 +23,11 @@ const context = await esbuild.context({
   define: {
     IS_PRODUCTION: 'false',
     IS_DEV: 'true',
+    ...pgliteDefine,
     'process.env.STEAM_API_KEYS': `"${process.env.STEAM_API_KEYS}"`,
     'process.env.FACEIT_API_KEY': `"${process.env.FACEIT_API_KEY}"`,
   },
+  banner: pgliteBanner,
   external: [
     'pg-native',
     '@aws-sdk/client-s3', // the unzipper module has it as a dev dependency

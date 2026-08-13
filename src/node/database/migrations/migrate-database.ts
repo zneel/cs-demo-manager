@@ -1,9 +1,9 @@
-import { DatabaseError } from 'pg';
 import { sql } from 'kysely';
 import { db } from 'csdm/node/database/database';
 import { ensureMigrationsTableExists } from 'csdm/node/database/migrations/ensure-migrations-table-exists';
 import { resetDatabase } from '../reset-database';
 import { PostgresqlErrorCode } from '../postgresql-error-code';
+import { hasDatabaseErrorCode } from '../has-database-error-code';
 import type { Migration } from './migration';
 import { getAllMigrations } from './get-all-migrations';
 import { DatabaseSchemaVersionMismatch } from '../database-schema-version-mismatch-error';
@@ -30,7 +30,7 @@ async function getCurrentSchemaVersion() {
 
     return migrationRow?.schemaVersion ?? 0;
   } catch (error) {
-    if (error instanceof DatabaseError && error.code === PostgresqlErrorCode.UndefinedTable) {
+    if (hasDatabaseErrorCode(error, PostgresqlErrorCode.UndefinedTable)) {
       return 0;
     }
 

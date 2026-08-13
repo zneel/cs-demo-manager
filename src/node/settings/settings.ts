@@ -12,19 +12,30 @@ import type { RecordingSystem } from 'csdm/common/types/recording-system';
 import type { RecordingOutput } from 'csdm/common/types/recording-output';
 import type { DisplayMode } from 'csdm/common/types/display-mode';
 import type { ArchiveFormat } from 'csdm/common/types/archive-format';
+import type { DatabaseBackend } from 'csdm/common/types/database-backend';
 
 export type Folder = {
   path: string;
   includeSubFolders: boolean;
 };
 
-export type DatabaseSettings = {
+export type PostgresqlDatabaseSettings = {
+  readonly backend: typeof DatabaseBackend.Postgresql;
   readonly hostname: string;
   readonly port: number;
   readonly username: string;
   readonly password: string;
   readonly database: string;
 };
+
+export type PgliteDatabaseSettings = {
+  readonly backend: typeof DatabaseBackend.Pglite;
+  // Folder where PGlite stores its data files. An empty string means the default location inside the app's user data
+  // folder, it allows to move the app's data folder without breaking the database location.
+  readonly folderPath: string;
+};
+
+export type DatabaseSettings = PostgresqlDatabaseSettings | PgliteDatabaseSettings;
 
 type DemosSettings = DemosTableFilter & {
   showAllFolders: boolean;

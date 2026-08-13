@@ -10,6 +10,7 @@ import esbuild from 'esbuild';
 import chokidar from 'chokidar';
 import nativeNodeModulesPlugin from './esbuild-native-node-modules-plugin.mjs';
 import { node } from './electron-vendors.mjs';
+import { copyPgliteAssets, pgliteBanner, pgliteDefine } from './pglite.mjs';
 
 const rootFolderPath = fileURLToPath(new URL('..', import.meta.url));
 const outFolderPath = path.resolve(rootFolderPath, 'out');
@@ -114,8 +115,10 @@ async function buildWebSocketProcessBundle() {
     ],
     define: {
       ...commonDefine,
+      ...pgliteDefine,
       'process.env.STEAM_API_KEYS': `"${process.env.STEAM_API_KEYS}"`,
     },
+    banner: pgliteBanner,
     alias: {
       // Force fdir to use the CJS version to avoid createRequire(import.meta.url) not working
       fdir: './node_modules/fdir/dist/index.cjs',
@@ -236,6 +239,7 @@ async function buildAndWatchMainProcessBundles() {
 
 try {
   await fs.ensureDir(outFolderPath);
+  await copyPgliteAssets(outFolderPath);
 
   await Promise.all([buildAndWatchRendererProcessBundle(), buildAndWatchMainProcessBundles(), copyDevRendererHtml()]);
   startElectron();

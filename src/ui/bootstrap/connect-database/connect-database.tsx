@@ -15,6 +15,12 @@ import { AppWrapper } from '../app-wrapper';
 import { AppContent } from '../app-content';
 import { connectDatabaseError, connectDatabaseSuccess } from '../bootstrap-actions';
 import { HostnameInput } from 'csdm/ui/components/inputs/hostname-input';
+import { DatabaseBackendSelect } from 'csdm/ui/components/inputs/database-backend-select';
+import { DatabaseBackend } from 'csdm/common/types/database-backend';
+import {
+  defaultPgliteDatabaseSettings,
+  defaultPostgresqlDatabaseSettings,
+} from 'csdm/node/settings/default-database-settings';
 import { RendererClientMessageName } from 'csdm/server/renderer-client-message-name';
 import { useBootstrapState } from '../use-bootstrap-state';
 import type { ConnectDatabaseError } from 'csdm/server/handlers/renderer-process/database/connect-database-handler';
@@ -195,65 +201,90 @@ export function ConnectDatabase() {
           <div className="m-auto flex w-[400px] flex-col">
             <div>
               <p>
-                <Trans>CS Demo Manager requires a PostgreSQL database.</Trans>
+                <Trans>
+                  CS Demo Manager stores your demos data in a database. The embedded database is bundled with the app
+                  and requires no setup, use a PostgreSQL server if you want to share the data between several
+                  computers.
+                </Trans>
               </p>
               <HelpLink />
             </div>
             <div className="mt-12 flex flex-col gap-12">
-              <div className="flex gap-x-8">
-                <div className="w-full">
-                  <HostnameInput
-                    hostname={databaseSettings.hostname}
+              <DatabaseBackendSelect
+                backend={databaseSettings.backend}
+                onChange={(backend) => {
+                  setDatabaseSettings(
+                    backend === DatabaseBackend.Pglite
+                      ? defaultPgliteDatabaseSettings
+                      : defaultPostgresqlDatabaseSettings,
+                  );
+                }}
+                isDisabled={isConnecting}
+              />
+              {databaseSettings.backend === DatabaseBackend.Postgresql ? (
+                <>
+                  <div className="flex gap-x-8">
+                    <div className="w-full">
+                      <HostnameInput
+                        hostname={databaseSettings.hostname}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                          setDatabaseSettings({
+                            ...databaseSettings,
+                            hostname: event.target.value,
+                          });
+                        }}
+                        isDisabled={isConnecting}
+                      />
+                    </div>
+                    <PortInput
+                      port={databaseSettings.port}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                        setDatabaseSettings({
+                          ...databaseSettings,
+                          port: +event.target.value,
+                        });
+                      }}
+                      isDisabled={isConnecting}
+                    />
+                  </div>
+                  <DatabaseNameInput
+                    databaseName={databaseSettings.database}
                     onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                       setDatabaseSettings({
                         ...databaseSettings,
-                        hostname: event.target.value,
+                        database: event.target.value,
                       });
                     }}
                     isDisabled={isConnecting}
                   />
-                </div>
-                <PortInput
-                  port={databaseSettings.port}
-                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    setDatabaseSettings({
-                      ...databaseSettings,
-                      port: +event.target.value,
-                    });
-                  }}
-                  isDisabled={isConnecting}
-                />
-              </div>
-              <DatabaseNameInput
-                databaseName={databaseSettings.database}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  setDatabaseSettings({
-                    ...databaseSettings,
-                    database: event.target.value,
-                  });
-                }}
-                isDisabled={isConnecting}
-              />
-              <UsernameInput
-                username={databaseSettings.username}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  setDatabaseSettings({
-                    ...databaseSettings,
-                    username: event.target.value,
-                  });
-                }}
-                isDisabled={isConnecting}
-              />
-              <PasswordInput
-                password={databaseSettings.password}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                  setDatabaseSettings({
-                    ...databaseSettings,
-                    password: event.target.value,
-                  });
-                }}
-                isDisabled={isConnecting}
-              />
+                  <UsernameInput
+                    username={databaseSettings.username}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setDatabaseSettings({
+                        ...databaseSettings,
+                        username: event.target.value,
+                      });
+                    }}
+                    isDisabled={isConnecting}
+                  />
+                  <PasswordInput
+                    password={databaseSettings.password}
+                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                      setDatabaseSettings({
+                        ...databaseSettings,
+                        password: event.target.value,
+                      });
+                    }}
+                    isDisabled={isConnecting}
+                  />
+                </>
+              ) : (
+                <p className="text-body-strong">
+                  <Trans>
+                    The database will be created in the app's folder, no PostgreSQL installation is required.
+                  </Trans>
+                </p>
+              )}
               <div className="flex items-center justify-between">
                 <ConnectDatabaseButton isLoading={isConnecting} onClick={connectDatabase} />
                 {secondsBeforeNextTry > 0 && (

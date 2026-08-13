@@ -6,6 +6,8 @@ import type { DatabaseSettings } from 'csdm/node/settings/settings';
 import type { Database } from 'csdm/node/database/schema';
 import { executePsql } from 'csdm/node/database/psql/execute-psql';
 import { formatHostnameForUri } from 'csdm/node/database/format-hostname-for-uri';
+import { getPgliteInstance } from 'csdm/node/database/database';
+import { DatabaseBackend } from 'csdm/common/types/database-backend';
 
 export type InsertOptions = {
   databaseSettings: DatabaseSettings;
@@ -38,8 +40,24 @@ export async function insertFromCsv<Table>({
   databaseSettings,
   tableName,
 }: InsertFromCsvOptions<Table>) {
-  const { database, username, hostname, port, password } = databaseSettings;
   const columnNames = columns.join(',');
+
+  // PGlite runs in-process, it can read the CSV content directly through its "/dev/blob" virtual file instead of
+  // going through the psql CLI.
+  if (databaseSettings.backend === DatabaseBackend.Pglite) {
+    const csvContent = await fs.readFile(csvFilePath);
+    await getPgliteInstance().query(
+      `COPY ${tableName}(${columnNames}) FROM '/dev/blob' WITH (FORMAT CSV, DELIMITER ',', ENCODING 'UTF8')`,
+      [],
+      {
+        blob: new Blob([csvContent]),
+      },
+    );
+
+    return;
+  }
+
+  const { database, username, hostname, port, password } = databaseSettings;
   const escapedCsvFilePath = csvFilePath.replaceAll("'", "''");
   const command = `-c "\\copy ${tableName}(${columnNames}) FROM '${escapedCsvFilePath}' ENCODING 'UTF8' CSV DELIMITER ','" "postgresql://${username}:${encodeURIComponent(
     password,
