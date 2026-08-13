@@ -52,6 +52,7 @@ function DownloadAllButton() {
   const status = useRenownStatus();
   const downloads: RenownDownload[] = matches.map((match) => {
     return {
+      id: match.id,
       matchId: match.id,
       game: match.game,
       demoUrl: match.demoUrl,

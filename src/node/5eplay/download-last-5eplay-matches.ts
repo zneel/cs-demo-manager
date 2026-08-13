@@ -16,12 +16,13 @@ export async function downloadLast5EPlayMatches() {
     fetchDownloadHistories(),
   ]);
 
-  const downloadedMatchIds = downloadHistories.map((history) => history.match_id);
+  const downloadedDownloadIds = downloadHistories.map((history) => history.download_id);
   const matchesToDownload = matches.filter((match) => {
-    return match.downloadStatus === DownloadStatus.NotDownloaded && !downloadedMatchIds.includes(match.id);
+    return match.downloadStatus === DownloadStatus.NotDownloaded && !downloadedDownloadIds.includes(match.id);
   });
   const downloads = matchesToDownload.map<FiveEPlayDownload>((match) => {
     return {
+      id: match.id,
       matchId: match.id,
       game: match.game,
       demoUrl: match.demoUrl,

@@ -1,5 +1,6 @@
 import type { FaceitMatch, FaceitPlayer, FaceitTeam } from 'csdm/common/types/faceit-match';
-import { getDownloadStatus } from 'csdm/node/download/get-download-status';
+import { buildFaceitDemosWithDownloadStatus } from 'csdm/node/faceit/build-faceit-demos-with-download-status';
+import { getDemosDownloadStatus } from 'csdm/common/download/get-demos-download-status';
 import type { FaceitMatchPlayerRow } from './faceit-match-player-table';
 import type { FaceitMatchRow } from './faceit-match-table';
 import type { FaceitMatchTeamRow } from './faceit-match-team-table';
@@ -42,6 +43,8 @@ export async function faceitMatchRowToFaceitMatch(
   teamRows: FaceitMatchTeamRow[],
   downloadFolderPath: string | undefined,
 ): Promise<FaceitMatch> {
+  const demos = await buildFaceitDemosWithDownloadStatus(row.id, row.demo_urls, downloadFolderPath);
+
   return {
     id: row.id,
     game: row.game,
@@ -50,11 +53,11 @@ export async function faceitMatchRowToFaceitMatch(
     mapName: row.map_name,
     date: row.date.toISOString(),
     durationInSeconds: row.duration_in_seconds,
-    demoUrl: row.demo_url,
+    demos,
     winnerId: row.winner_id,
     winnerName: row.winner_name,
     players: playerRows.map(playerRowToPlayer),
     teams: teamRows.map(teamRowToTeam),
-    downloadStatus: await getDownloadStatus(downloadFolderPath, row.id, row.demo_url),
+    downloadStatus: getDemosDownloadStatus(demos.map((demo) => demo.downloadStatus)),
   };
 }

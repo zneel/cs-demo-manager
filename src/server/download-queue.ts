@@ -10,7 +10,7 @@ import { server } from 'csdm/server/server';
 import { loadDemoByPath } from 'csdm/node/demo/load-demo-by-path';
 import { getSettings } from 'csdm/node/settings/get-settings';
 import { getDemoFromFilePath } from 'csdm/node/demo/get-demo-from-file-path';
-import type { Download, DownloadDemoProgressPayload } from 'csdm/common/download/download-types';
+import type { Download, DownloadDemoProgressPayload, DownloadIdentity } from 'csdm/common/download/download-types';
 import { DownloadSource } from 'csdm/common/download/download-types';
 import { MatchAlreadyInDownloadQueue } from 'csdm/node/download/errors/match-already-in-download-queue';
 import { MatchAlreadyDownloaded } from 'csdm/node/download/errors/match-already-downloaded';
@@ -20,6 +20,9 @@ import { WriteDemoInfoFileError } from 'csdm/node/download/errors/write-info-fil
 import { insertDownloadHistory } from 'csdm/node/database/download-history/insert-download-history';
 import { InvalidDemoHeader } from 'csdm/node/demo/errors/invalid-demo-header';
 import { insertDemos } from 'csdm/node/database/demos/insert-demos';
+import { BaseError } from 'csdm/node/errors/base-error';
+import { fetchDemoDownloadUrl } from 'csdm/node/faceit-web-api/fetch-demo-download-url';
+import { getFaceitApiKey } from 'csdm/node/faceit-web-api/get-faceit-api-key';
 import { ArchiveFormat } from 'csdm/common/types/archive-format';
 import { getArchiveFormatFromDemoUrl } from 'csdm/node/download/get-archive-format-from-demo-url';
 import { createDecompressStream } from 'csdm/node/demo/create-decompress-stream';
@@ -43,12 +46,12 @@ function createDemoTransformStream(demoUrl: string): NodeJS.WritableStream {
 class DownloadDemoQueue {
   private downloads: Download[] = [];
   private currentDownload: Download | undefined;
-  private abortControllersPerMatchId: { [matchId: string]: AbortController | undefined } = {};
+  private abortControllersPerDownloadId: { [downloadId: string]: AbortController | undefined } = {};
 
   public addDownload = async (download: Download) => {
     const downloadFolderPath = await this.getDownloadFolderPath();
 
-    if (this.isMatchAlreadyInQueue(download.matchId)) {
+    if (this.isDownloadAlreadyInQueue(download.id)) {
       throw new MatchAlreadyInDownloadQueue();
     }
 
@@ -56,7 +59,7 @@ class DownloadDemoQueue {
       throw new MatchAlreadyDownloaded();
     }
 
-    const downloadLinkExpired = await isDownloadLinkExpired(download.demoUrl);
+    const downloadLinkExpired = await this.isDemoLinkExpired(download);
     if (downloadLinkExpired) {
       throw new DownloadLinkExpired();
     }
@@ -80,7 +83,7 @@ class DownloadDemoQueue {
 
     const validDownloads: Download[] = [];
     for (const download of downloads) {
-      const isAlreadyInQueue = this.isMatchAlreadyInQueue(download.matchId);
+      const isAlreadyInQueue = this.isDownloadAlreadyInQueue(download.id);
       if (isAlreadyInQueue) {
         continue;
       }
@@ -90,7 +93,7 @@ class DownloadDemoQueue {
         continue;
       }
 
-      const downloadLinkExpired = await isDownloadLinkExpired(download.demoUrl);
+      const downloadLinkExpired = await this.isDemoLinkExpired(download);
       if (downloadLinkExpired) {
         continue;
       }
@@ -126,25 +129,25 @@ class DownloadDemoQueue {
     return downloads;
   };
 
-  public abortDownload(matchId: string) {
-    const controller = this.abortControllersPerMatchId[matchId];
+  public abortDownload(downloadId: string) {
+    const controller = this.abortControllersPerDownloadId[downloadId];
     if (controller !== undefined) {
       controller.abort();
     }
 
-    this.abortControllersPerMatchId[matchId] = undefined;
-    this.downloads = this.downloads.filter((download) => download.matchId !== matchId);
-    if (this.currentDownload?.matchId === matchId) {
+    this.abortControllersPerDownloadId[downloadId] = undefined;
+    this.downloads = this.downloads.filter((download) => download.id !== downloadId);
+    if (this.currentDownload?.id === downloadId) {
       this.currentDownload = undefined;
     }
   }
 
   public abortDownloads() {
-    for (const controller of Object.values(this.abortControllersPerMatchId)) {
+    for (const controller of Object.values(this.abortControllersPerDownloadId)) {
       controller?.abort();
     }
 
-    this.abortControllersPerMatchId = {};
+    this.abortControllersPerDownloadId = {};
     this.downloads = [];
     this.currentDownload = undefined;
   }
@@ -174,12 +177,12 @@ class DownloadDemoQueue {
 
     const downloadFolderPath = await this.getDownloadFolderPath();
     const controller = new AbortController();
-    this.abortControllersPerMatchId[currentDownload.matchId] = controller;
+    this.abortControllersPerDownloadId[currentDownload.id] = controller;
 
     const demoPath = this.buildDemoPath(downloadFolderPath, currentDownload.fileName);
     const infoPath = this.buildDemoInfoFilePath(demoPath);
     try {
-      const url = new URL(currentDownload.demoUrl);
+      const url = new URL(await this.getDemoDownloadUrl(currentDownload));
       const client = new Client(url.origin).compose(interceptors.redirect({ maxRedirections: 1 }));
       const response = await client.request({
         // Keep the query parameters, download links may be signed URLs that require them.
@@ -190,7 +193,7 @@ class DownloadDemoQueue {
       if (response.statusCode === 404) {
         server.sendMessageToRendererProcess({
           name: RendererServerMessageName.DownloadDemoExpired,
-          payload: currentDownload.matchId,
+          payload: this.buildDownloadIdentity(currentDownload),
         });
         return;
       }
@@ -214,7 +217,7 @@ class DownloadDemoQueue {
         // Send progress messages only every 1% to reduce messages
         if (progress - currentProgress >= 0.01 || progress === 1) {
           const payload: DownloadDemoProgressPayload = {
-            matchId: currentDownload.matchId,
+            ...this.buildDownloadIdentity(currentDownload),
             progress,
           };
           server.sendMessageToRendererProcess({
@@ -245,7 +248,7 @@ class DownloadDemoQueue {
         demo.date = currentDownload.match.date;
         await insertDemos([demo]);
       }
-      await insertDownloadHistory(currentDownload.matchId);
+      await insertDownloadHistory(currentDownload.id);
 
       server.sendMessageToRendererProcess({
         name: RendererServerMessageName.DownloadDemoSuccess,
@@ -265,7 +268,10 @@ class DownloadDemoQueue {
         logger.error(error);
         server.sendMessageToRendererProcess({
           name: RendererServerMessageName.DownloadDemoError,
-          payload: currentDownload.matchId,
+          payload: {
+            ...this.buildDownloadIdentity(currentDownload),
+            errorCode: error instanceof BaseError ? error.code : undefined,
+          },
         });
       }
       if (error instanceof InvalidDemoHeader) {
@@ -273,7 +279,7 @@ class DownloadDemoQueue {
         logger.error(error);
         server.sendMessageToRendererProcess({
           name: RendererServerMessageName.DownloadDemoCorrupted,
-          payload: currentDownload.matchId,
+          payload: this.buildDownloadIdentity(currentDownload),
         });
       }
       await fs.remove(demoPath);
@@ -304,11 +310,37 @@ class DownloadDemoQueue {
     return downloadFolderPath as string;
   }
 
-  private isMatchAlreadyInQueue(matchId: string): boolean {
+  // FACEIT demos links are private, they can't be checked nor downloaded without going through the "Download API",
+  // which requires an API key that has been granted access to it.
+  // https://docs.faceit.com/getting-started/Guides/download-api
+  private isDemoLinkExpired = async (download: Download) => {
+    if (download.source === DownloadSource.Faceit) {
+      return download.demoUrl === '';
+    }
+
+    return isDownloadLinkExpired(download.demoUrl);
+  };
+
+  // The link returned by the FACEIT "Download API" is temporary, it has to be retrieved right before downloading it.
+  private getDemoDownloadUrl = async (download: Download) => {
+    if (download.source !== DownloadSource.Faceit) {
+      return download.demoUrl;
+    }
+
+    const apiKey = await getFaceitApiKey();
+
+    return fetchDemoDownloadUrl(download.demoUrl, apiKey);
+  };
+
+  private buildDownloadIdentity({ id, matchId }: Download): DownloadIdentity {
+    return { id, matchId };
+  }
+
+  private isDownloadAlreadyInQueue(downloadId: string): boolean {
     return (
-      this.currentDownload?.matchId === matchId ||
+      this.currentDownload?.id === downloadId ||
       this.downloads.some((download) => {
-        return download.matchId === matchId;
+        return download.id === downloadId;
       })
     );
   }

@@ -1,12 +1,12 @@
 import { sql } from 'kysely';
 import { db } from '../database';
 
-export async function insertDownloadHistory(matchId: string) {
+export async function insertDownloadHistory(downloadId: string) {
   await db
     .insertInto('download_history')
-    .values({ match_id: matchId })
+    .values({ download_id: downloadId })
     .onConflict((oc) => {
-      return oc.column('match_id').doUpdateSet({
+      return oc.column('download_id').doUpdateSet({
         downloaded_at: () => sql`now()`,
       });
     })

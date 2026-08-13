@@ -12,7 +12,7 @@ function matchToRow(match: FaceitMatch): FaceitMatchRow {
     game: match.game,
     date: new Date(match.date),
     duration_in_seconds: match.durationInSeconds,
-    demo_url: match.demoUrl,
+    demo_urls: match.demos.map((demo) => demo.url),
     map_name: match.mapName,
     url: match.url,
     game_mode: match.gameMode,

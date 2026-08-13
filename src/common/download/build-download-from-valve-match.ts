@@ -6,6 +6,7 @@ export function buildDownloadFromValveMatch(match: ValveMatch): ValveDownload {
   return {
     source: DownloadSource.Valve,
     game: match.game,
+    id: match.id,
     matchId: match.id,
     demoUrl: match.demoUrl,
     fileName: match.name,

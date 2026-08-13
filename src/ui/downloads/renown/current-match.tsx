@@ -18,6 +18,7 @@ function DownloadButton() {
     game: match.game,
     demoUrl: match.demoUrl,
     fileName: match.id,
+    id: match.id,
     matchId: match.id,
     source: DownloadSource.Renown,
     match,

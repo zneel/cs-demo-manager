@@ -1,3 +1,4 @@
+import type { ErrorCode } from 'csdm/common/error-code';
 import type { Game } from 'csdm/common/types/counter-strike';
 import type { FaceitMatch } from 'csdm/common/types/faceit-match';
 import type { ValveMatch } from 'csdm/common/types/valve-match';
@@ -12,9 +13,19 @@ export const DownloadSource = {
 } as const;
 export type DownloadSource = (typeof DownloadSource)[keyof typeof DownloadSource];
 
-export type DownloadDemoProgressPayload = {
+// A match may hold several demos (i.e. a best of 3), downloads are identified by their own id instead of the match's
+// id. It's the match's id when the match holds a single demo.
+export type DownloadIdentity = {
+  id: string;
   matchId: string;
+};
+
+export type DownloadDemoProgressPayload = DownloadIdentity & {
   progress: number;
+};
+
+export type DownloadDemoErrorPayload = DownloadIdentity & {
+  errorCode: ErrorCode | undefined;
 };
 
 export type DownloadDemoSuccess = {
@@ -22,9 +33,8 @@ export type DownloadDemoSuccess = {
   demoChecksum: string;
 };
 
-type BaseDownload = {
+type BaseDownload = DownloadIdentity & {
   game: Game;
-  matchId: string;
   fileName: string;
   demoUrl: string;
 };

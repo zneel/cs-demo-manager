@@ -3001,6 +3001,14 @@ msgctxt "Button"
 msgid "See on FACEIT"
 msgstr "See on FACEIT"
 
+#: src/ui/downloads/faceit/demos.tsx
+msgid "Demos"
+msgstr "Demos"
+
+#: src/ui/downloads/faceit/demos.tsx
+msgid "Map {position}"
+msgstr "Map {position}"
+
 #: src/ui/downloads/faceit/last-matches-loader.tsx
 #: src/ui/downloads/five-eplay/5eplay-last-matches-loader.tsx
 #: src/ui/downloads/renown/last-matches-loader.tsx
@@ -3245,12 +3253,24 @@ msgid "Pending downloads"
 msgstr "Pending downloads"
 
 #: src/ui/downloads/pending/download-actions.tsx
-msgid "The downloaded demo is corrupted. You can retry later."
-msgstr "The downloaded demo is corrupted. You can retry later."
+msgid "Your FACEIT API key is not allowed to use the FACEIT Download API."
+msgstr "Your FACEIT API key is not allowed to use the FACEIT Download API."
+
+#: src/ui/downloads/pending/download-actions.tsx
+msgid "The demo is not available on FACEIT, it may not have been uploaded yet."
+msgstr "The demo is not available on FACEIT, it may not have been uploaded yet."
+
+#: src/ui/downloads/pending/download-actions.tsx
+msgid "FACEIT returned an error while retrieving the demo download link."
+msgstr "FACEIT returned an error while retrieving the demo download link."
 
 #: src/ui/downloads/pending/download-actions.tsx
 msgid "An error occurred while downloading the demo."
 msgstr "An error occurred while downloading the demo."
+
+#: src/ui/downloads/pending/download-actions.tsx
+msgid "The downloaded demo is corrupted. You can retry later."
+msgstr "The downloaded demo is corrupted. You can retry later."
 
 #: src/ui/downloads/pending/pending-downloads-list.tsx
 msgid "No pending downloads."
@@ -3342,6 +3362,11 @@ msgstr "Error on download"
 msgctxt "Download status"
 msgid "Not downloaded"
 msgstr "Not downloaded"
+
+#: src/ui/downloads/sidebar/match-download-status.tsx
+msgctxt "Download status"
+msgid "Partially downloaded"
+msgstr "Partially downloaded"
 
 #: src/ui/downloads/sidebar/match-download-status.tsx
 msgctxt "Download status"
@@ -7369,12 +7394,12 @@ msgid "Download folder"
 msgstr "Download folder"
 
 #: src/ui/settings/downloads/faceit-downloads-warning.tsx
-msgid "FACEIT restricted demo downloads through a <0>private API</0> and recently gave us a server-side API key with the maximum rate limit."
-msgstr "FACEIT restricted demo downloads through a <0>private API</0> and recently gave us a server-side API key with the maximum rate limit."
+msgid "FACEIT restricted demo downloads through a <0>private Download API</0>. To download demos you have to provide a FACEIT API key that has been granted access to it."
+msgstr "FACEIT restricted demo downloads through a <0>private Download API</0>. To download demos you have to provide a FACEIT API key that has been granted access to it."
 
 #: src/ui/settings/downloads/faceit-downloads-warning.tsx
-msgid "You <0>don't have to ask</0> FACEIT for an API key. It requires some work, but demo downloads will be back in a near future."
-msgstr "You <0>don't have to ask</0> FACEIT for an API key. It requires some work, but demo downloads will be back in a near future."
+msgid "You can request access to the Download API from <0>this form</0> and then enter your API key in the <1>Integrations</1> settings."
+msgstr "You can request access to the Download API from <0>this form</0> and then enter your API key in the <1>Integrations</1> settings."
 
 #: src/ui/settings/downloads/faceit-downloads-warning.tsx
 msgid "In the meantime, you have to download demos from your browser."
@@ -7497,8 +7522,8 @@ msgid "FACEIT API key"
 msgstr "FACEIT API key"
 
 #: src/ui/settings/integrations/integrations-settings.tsx
-msgid "Custom FACEIT API key used to retrieve information from FACEIT"
-msgstr "Custom FACEIT API key used to retrieve information from FACEIT"
+msgid "Custom FACEIT API key used to retrieve information from FACEIT. It's also used to download demos if it has been granted access to the FACEIT Download API."
+msgstr "Custom FACEIT API key used to retrieve information from FACEIT. It's also used to download demos if it has been granted access to the FACEIT Download API."
 
 #: src/ui/settings/maps/add-map-button.tsx
 msgctxt "Button"

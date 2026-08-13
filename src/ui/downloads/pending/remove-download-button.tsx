@@ -6,12 +6,13 @@ import { useWebSocketClient } from 'csdm/ui/hooks/use-web-socket-client';
 import { abortDownload } from './pending-actions';
 import { RemoveButton } from 'csdm/ui/components/buttons/remove-button';
 import { useShowToast } from 'csdm/ui/components/toasts/use-show-toast';
+import type { Download } from 'csdm/common/download/download-types';
 
 type Props = {
-  matchId: string;
+  download: Download;
 };
 
-export function RemoveDownloadButton({ matchId }: Props) {
+export function RemoveDownloadButton({ download }: Props) {
   const client = useWebSocketClient();
   const dispatch = useDispatch();
   const showToast = useShowToast();
@@ -20,9 +21,9 @@ export function RemoveDownloadButton({ matchId }: Props) {
     try {
       await client.send({
         name: RendererClientMessageName.AbortDownload,
-        payload: matchId,
+        payload: download.id,
       });
-      dispatch(abortDownload({ matchId }));
+      dispatch(abortDownload({ id: download.id, matchId: download.matchId }));
     } catch (error) {
       showToast({
         content: <Trans>An error occurred</Trans>,

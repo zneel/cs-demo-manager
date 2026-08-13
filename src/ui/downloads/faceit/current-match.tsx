@@ -2,9 +2,10 @@ import React from 'react';
 import { Trans } from '@lingui/react/macro';
 import { ActionBar as CommonActionBar } from 'csdm/ui/components/action-bar';
 import { WatchDemoButton } from 'csdm/ui/downloads/watch-demo-button';
-import type { FaceitDownload } from 'csdm/common/download/download-types';
-import { DownloadSource } from 'csdm/common/download/download-types';
+import { Status } from 'csdm/common/types/status';
+import { buildDownloadsFromFaceitMatch } from 'csdm/common/download/build-faceit-demos';
 import { DownloadDemoButton } from '../download-demo-button';
+import { DownloadDemosButton } from '../download-demos-button';
 import { RevealDemoInExplorerButton } from '../reveal-demo-in-explorer-button';
 import { Match } from './match';
 import { useCurrentMatch } from './use-current-match';
@@ -24,30 +25,35 @@ function SeeOnFaceitButton() {
 
 function DownloadButton() {
   const match = useCurrentMatch();
-  const download: FaceitDownload = {
-    game: match.game,
-    demoUrl: match.demoUrl,
-    fileName: match.id,
-    matchId: match.id,
-    source: DownloadSource.Faceit,
-    match,
-  };
+  const downloads = buildDownloadsFromFaceitMatch(match);
 
-  return <DownloadDemoButton status={match.downloadStatus} download={download} />;
+  if (downloads.length === 1) {
+    return <DownloadDemoButton status={match.downloadStatus} download={downloads[0]} />;
+  }
+
+  // Matches holding several demos (i.e. a best of 3) queue all of them at once, each demo also has its own actions
+  // in the match's demos list.
+  return <DownloadDemosButton downloads={downloads} loadingStatus={Status.Success} />;
 }
 
 function ActionBar() {
   const match = useCurrentMatch();
+  // Actions targeting a single demo file are available per demo in the match's demos list when there are several.
+  const demo = match.demos.length === 1 ? match.demos[0] : undefined;
 
   return (
     <CommonActionBar
       left={
         <>
           <DownloadButton />
-          <RevealDemoInExplorerButton demoFileName={match.id} downloadStatus={match.downloadStatus} />
-          <SeeDemoButton demoFileName={match.id} downloadStatus={match.downloadStatus} />
-          <WatchDemoButton demoFileName={match.id} game={match.game} downloadStatus={match.downloadStatus} />
-          {match.demoUrl && <CopyDemoLinkButton link={match.demoUrl} />}
+          {demo && (
+            <>
+              <RevealDemoInExplorerButton demoFileName={demo.fileName} downloadStatus={demo.downloadStatus} />
+              <SeeDemoButton demoFileName={demo.fileName} downloadStatus={demo.downloadStatus} />
+              <WatchDemoButton demoFileName={demo.fileName} game={match.game} downloadStatus={demo.downloadStatus} />
+              <CopyDemoLinkButton link={demo.url} />
+            </>
+          )}
           <SeeOnFaceitButton />
         </>
       }
