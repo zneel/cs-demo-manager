@@ -8,10 +8,12 @@ type Props = {
   icon: ReactNode | ((isActive: boolean) => ReactNode);
   tooltip: ReactNode;
   url: string;
+  // Optional text displayed under the icon, truncated since the left bar is narrow.
+  label?: string;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
 };
 
-export function LeftBarLink({ url, tooltip, icon, onClick }: Props) {
+export function LeftBarLink({ url, tooltip, icon, label, onClick }: Props) {
   return (
     <LeftBarTooltip content={tooltip}>
       <NavLink
@@ -25,7 +27,12 @@ export function LeftBarLink({ url, tooltip, icon, onClick }: Props) {
         viewTransition={true}
       >
         {({ isActive }) => {
-          return <div className="flex w-32 justify-center">{typeof icon === 'function' ? icon(isActive) : icon}</div>;
+          return (
+            <>
+              <div className="flex w-32 justify-center">{typeof icon === 'function' ? icon(isActive) : icon}</div>
+              {label !== undefined && <p className="mt-4 w-full truncate px-4 text-center text-caption">{label}</p>}
+            </>
+          );
         }}
       </NavLink>
     </LeftBarTooltip>

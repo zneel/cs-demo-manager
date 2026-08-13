@@ -20,6 +20,7 @@ export function PinnedPlayerLink({ player }: Props) {
         );
       }}
       tooltip={player.name}
+      label={player.name}
       url={buildPlayerPath(player.steamId)}
     />
   );
