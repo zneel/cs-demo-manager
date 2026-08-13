@@ -2,6 +2,7 @@ import React from 'react';
 import type { FaceitMatch } from 'csdm/common/types/faceit-match';
 import { Scoreboard } from './scoreboard';
 import { FaceitDownloadsWarning } from 'csdm/ui/settings/downloads/faceit-downloads-warning';
+import { Demos } from './demos';
 
 type Props = {
   match: FaceitMatch;
@@ -11,6 +12,7 @@ export function Match({ match }: Props) {
   return (
     <div className="flex flex-1 flex-col overflow-auto p-16">
       <FaceitDownloadsWarning />
+      <Demos match={match} />
       <div className="my-8 flex flex-col gap-y-8">
         {match.teams.map((team, index) => {
           const oppositeTeam = index === 0 && match.teams.length > 1 ? match.teams[1] : match.teams[0];

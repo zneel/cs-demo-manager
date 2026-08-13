@@ -20,7 +20,13 @@ import {
 import { useDispatch } from '../../store/use-dispatch';
 import type { WebSocketClient } from 'csdm/ui/web-socket-client';
 import type { ErrorCode } from 'csdm/common/error-code';
-import type { Download, DownloadDemoProgressPayload, DownloadDemoSuccess } from 'csdm/common/download/download-types';
+import type {
+  Download,
+  DownloadDemoErrorPayload,
+  DownloadDemoProgressPayload,
+  DownloadDemoSuccess,
+  DownloadIdentity,
+} from 'csdm/common/download/download-types';
 
 function useRegisterFetchLastValveMatchesListeners(client: WebSocketClient) {
   const dispatch = useDispatch();
@@ -65,13 +71,13 @@ export function useRegisterDownloadsListeners(client: WebSocketClient) {
     };
     client.on(RendererServerMessageName.DownloadsAdded, onDownloadsAdded);
 
-    const onDownloadProgress = ({ matchId, progress }: DownloadDemoProgressPayload) => {
-      dispatch(downloadDemoProgressChanged({ matchId, progress }));
+    const onDownloadProgress = (payload: DownloadDemoProgressPayload) => {
+      dispatch(downloadDemoProgressChanged(payload));
     };
     client.on(RendererServerMessageName.DownloadDemoProgress, onDownloadProgress);
 
-    const onDemoExpired = (matchId: string) => {
-      dispatch(downloadDemoExpired({ matchId }));
+    const onDemoExpired = (identity: DownloadIdentity) => {
+      dispatch(downloadDemoExpired(identity));
     };
     client.on(RendererServerMessageName.DownloadDemoExpired, onDemoExpired);
 
@@ -80,13 +86,13 @@ export function useRegisterDownloadsListeners(client: WebSocketClient) {
     };
     client.on(RendererServerMessageName.DownloadDemoSuccess, onDownloadDemoSuccess);
 
-    const onDownloadDemoCorrupted = (matchId: string) => {
-      dispatch(downloadDemoCorrupted({ matchId }));
+    const onDownloadDemoCorrupted = (identity: DownloadIdentity) => {
+      dispatch(downloadDemoCorrupted(identity));
     };
     client.on(RendererServerMessageName.DownloadDemoCorrupted, onDownloadDemoCorrupted);
 
-    const onDownloadDemoError = (matchId: string) => {
-      dispatch(downloadDemoError({ matchId }));
+    const onDownloadDemoError = (payload: DownloadDemoErrorPayload) => {
+      dispatch(downloadDemoError(payload));
     };
     client.on(RendererServerMessageName.DownloadDemoError, onDownloadDemoError);
 

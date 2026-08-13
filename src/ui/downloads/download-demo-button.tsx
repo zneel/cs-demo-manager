@@ -71,8 +71,10 @@ export function DownloadDemoButton({ download, status }: Props) {
     case DownloadStatus.Downloaded:
       tooltip = <Trans context="Tooltip">Demo already downloaded</Trans>;
       break;
+    // A partially downloaded match still has demos to download.
     case DownloadStatus.Error:
     case DownloadStatus.NotDownloaded:
+    case DownloadStatus.PartiallyDownloaded:
       isDisabled = false;
       break;
   }

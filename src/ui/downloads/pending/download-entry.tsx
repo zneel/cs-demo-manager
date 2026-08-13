@@ -25,7 +25,7 @@ export function DownloadEntry({ download }: Props) {
           <p className="selectable">{formatDate(date)}</p>
         </div>
       </div>
-      <DownloadActions demoFileName={download.fileName} matchId={download.matchId} />
+      <DownloadActions demoFileName={download.fileName} download={download} />
     </div>
   );
 }

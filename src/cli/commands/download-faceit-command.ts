@@ -11,7 +11,7 @@ import { fetchDemoDownloadUrl } from 'csdm/node/faceit-web-api/fetch-demo-downlo
 import { getFaceitApiKey } from 'csdm/node/faceit-web-api/get-faceit-api-key';
 import { FaceitForbiddenError } from 'csdm/node/faceit-web-api/errors/faceit-forbidden-error';
 import { FaceitUnauthorized } from 'csdm/node/faceit-web-api/errors/faceit-unauthorized';
-import type { FaceitMatch } from 'csdm/common/types/faceit-match';
+import type { FaceitDemo, FaceitMatch } from 'csdm/common/types/faceit-match';
 import { DownloadBaseCommand } from './download-base-command';
 const streamPipeline = util.promisify(pipeline);
 
@@ -105,23 +105,30 @@ export class DownloadFaceitCommand extends DownloadBaseCommand {
     }
   }
 
+  // A match holds one demo per map played (i.e. a best of 3 holds 3 demos), all of them are downloaded.
   private async processMatch(match: FaceitMatch) {
-    const demoPath = path.join(this.outputFolderPath, `${match.id}.dem`);
-    const demoAlreadyExists = await fs.pathExists(demoPath);
-    if (demoAlreadyExists) {
-      console.log('Demo already in the download folder.');
+    if (match.demos.length === 0) {
+      console.log(`No demo available for match: ${match.id}`);
       return;
     }
 
-    if (match.demoUrl === '') {
-      console.log(`No demo available for match: ${match.id}`);
+    for (const demo of match.demos) {
+      await this.processDemo(match, demo);
+    }
+  }
+
+  private async processDemo(match: FaceitMatch, demo: FaceitDemo) {
+    const demoPath = path.join(this.outputFolderPath, `${demo.fileName}.dem`);
+    const demoAlreadyExists = await fs.pathExists(demoPath);
+    if (demoAlreadyExists) {
+      console.log(`Demo ${demo.fileName} already in the download folder.`);
       return;
     }
 
     let downloadUrl: string;
     try {
       const apiKey = await getFaceitApiKey();
-      downloadUrl = await fetchDemoDownloadUrl(match.demoUrl, apiKey);
+      downloadUrl = await fetchDemoDownloadUrl(demo.url, apiKey);
     } catch (error) {
       console.log(`Failed to retrieve the demo download link of match: ${match.id}`);
       if (error instanceof FaceitForbiddenError || error instanceof FaceitUnauthorized) {
@@ -132,7 +139,7 @@ export class DownloadFaceitCommand extends DownloadBaseCommand {
       return;
     }
 
-    console.log(`Downloading ${match.demoUrl}...`);
+    console.log(`Downloading ${demo.url}...`);
     this.demoPathBeingDownloaded = demoPath;
     const response = await request(downloadUrl, { method: 'GET' });
     if (!response.body) {

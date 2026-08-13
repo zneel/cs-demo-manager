@@ -6,7 +6,8 @@ import type { FaceitMatchStatsDTO } from 'csdm/node/faceit-web-api/fetch-match-s
 import { fetchMatch } from 'csdm/node/faceit-web-api/fetch-match';
 import type { FaceitFactionDTO } from 'csdm/node/faceit-web-api/fetch-match';
 import type { FaceitFactionV1DTO } from 'csdm/node/faceit-web-api/fetch-match';
-import { getProtectedDemoDownloadStatus } from 'csdm/node/download/get-download-status';
+import { buildFaceitDemosWithDownloadStatus } from 'csdm/node/faceit/build-faceit-demos-with-download-status';
+import { getDemosDownloadStatus } from 'csdm/common/download/get-demos-download-status';
 import { unixTimestampToDate } from 'csdm/common/date/unix-timestamp-to-date';
 import { Game } from 'csdm/common/types/counter-strike';
 
@@ -85,18 +86,15 @@ async function buildFaceitMatchFromFaceitDTOs(
     }
   }
 
-  let demoUrl = '';
-  const demoUrls = matchDTO.demo_url;
   // FACEIT demos links are private, they can be downloaded only through the "Download API" with an API key that has
   // been granted access to it. https://docs.faceit.com/getting-started/Guides/download-api
-  if (demoUrls !== undefined && demoUrls.length > 0) {
-    demoUrl = demoUrls[0];
-  }
-  const downloadStatus: DownloadStatus = await getProtectedDemoDownloadStatus(
-    downloadFolderPath,
+  // A match holds one demo per map played (i.e. a best of 3 holds 3 demos).
+  const demos = await buildFaceitDemosWithDownloadStatus(
     matchDTO.match_id,
-    demoUrl,
+    matchDTO.demo_url ?? [],
+    downloadFolderPath,
   );
+  const downloadStatus: DownloadStatus = getDemosDownloadStatus(demos.map((demo) => demo.downloadStatus));
 
   // Remove potential workshop identifier prefix from map's name (i.e workshop/id/map_name).
   const workshopRegex = /workshop\/(\d+\/)(?<mapName>.*)/;
@@ -107,7 +105,7 @@ async function buildFaceitMatchFromFaceitDTOs(
     date: unixTimestampToDate(matchDTO.started_at).toISOString(),
     id: matchDTO.match_id,
     mapName: matches?.groups?.mapName || firstRoundStats.round_stats.Map,
-    demoUrl,
+    demos,
     players,
     teams,
     gameMode: firstRoundStats.game_mode,

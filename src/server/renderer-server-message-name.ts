@@ -1,7 +1,13 @@
 import type { Settings } from 'csdm/node/settings/settings';
 import type { Analysis } from 'csdm/common/types/analysis';
 import type { MatchTable } from 'csdm/common/types/match-table';
-import type { Download, DownloadDemoProgressPayload, DownloadDemoSuccess } from 'csdm/common/download/download-types';
+import type {
+  Download,
+  DownloadDemoProgressPayload,
+  DownloadDemoErrorPayload,
+  DownloadDemoSuccess,
+  DownloadIdentity,
+} from 'csdm/common/download/download-types';
 import type { Demo } from '../common/types/demo';
 import type { LoadDemosProgress } from '../common/types/load-demos-progress';
 import type { ErrorCode } from '../common/error-code';
@@ -82,11 +88,11 @@ export interface RendererServerMessagePayload extends SharedServerMessagePayload
   [RendererServerMessageName.FetchLastValveMatchesError]: ErrorCode;
   [RendererServerMessageName.FetchLastValveMatchesSteamIdDetected]: string;
   [RendererServerMessageName.DownloadsAdded]: Download[];
-  [RendererServerMessageName.DownloadDemoExpired]: string;
+  [RendererServerMessageName.DownloadDemoExpired]: DownloadIdentity;
   [RendererServerMessageName.DownloadDemoProgress]: DownloadDemoProgressPayload;
   [RendererServerMessageName.DownloadDemoSuccess]: DownloadDemoSuccess;
-  [RendererServerMessageName.DownloadDemoCorrupted]: string;
-  [RendererServerMessageName.DownloadDemoError]: string;
+  [RendererServerMessageName.DownloadDemoCorrupted]: DownloadIdentity;
+  [RendererServerMessageName.DownloadDemoError]: DownloadDemoErrorPayload;
   [RendererServerMessageName.DownloadDemoInCurrentFolderLoaded]: Demo;
   [RendererServerMessageName.ExportToXlsxProgress]: ExportToXlsxProgressPayload;
   [RendererServerMessageName.ExportToXlsxSheetProgress]: string;

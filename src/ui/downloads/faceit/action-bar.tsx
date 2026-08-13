@@ -10,8 +10,8 @@ import { useFaceitAccounts } from './use-faceit-accounts';
 import { Select } from 'csdm/ui/components/inputs/select';
 import { useUpdateCurrentFaceitAccount } from './use-update-current-faceit-account';
 import { DownloadDemosButton } from '../download-demos-button';
-import { DownloadSource } from 'csdm/common/download/download-types';
 import type { FaceitDownload } from 'csdm/common/download/download-types';
+import { buildDownloadsFromFaceitMatch } from 'csdm/common/download/build-faceit-demos';
 import { useFaceitMatches } from './use-faceit-matches';
 import { useFetchLastFaceitMatches } from './use-fetch-last-faceit-matches';
 import { useFaceitStatus } from './use-faceit-status';
@@ -51,16 +51,8 @@ function RefreshMatchesButton() {
 function DownloadAllButton() {
   const matches: FaceitMatch[] = useFaceitMatches();
   const status = useFaceitStatus();
-  const downloads: FaceitDownload[] = matches.map((match) => {
-    return {
-      demoUrl: match.demoUrl,
-      fileName: match.id,
-      game: match.game,
-      match: match,
-      matchId: match.id,
-      source: DownloadSource.Faceit,
-    };
-  });
+  // A match may hold several demos (i.e. a best of 3), all of them are downloaded.
+  const downloads: FaceitDownload[] = matches.flatMap(buildDownloadsFromFaceitMatch);
 
   return <DownloadDemosButton downloads={downloads} loadingStatus={status} />;
 }

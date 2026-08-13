@@ -29,6 +29,12 @@ export function MatchDownloadStatus({ status }: Props) {
           <DownloadIcon width={iconSize} className="text-orange-400" />
         </Tooltip>
       );
+    case DownloadStatus.PartiallyDownloaded:
+      return (
+        <Tooltip content={<Trans context="Download status">Partially downloaded</Trans>}>
+          <DownloadIcon width={iconSize} className="text-blue-400" />
+        </Tooltip>
+      );
     case DownloadStatus.Downloading:
       return (
         <Tooltip content={<Trans context="Download status">Downloading…</Trans>}>

@@ -7,7 +7,7 @@ export type FaceitMatchTable = {
   map_name: string;
   date: Date;
   duration_in_seconds: number;
-  demo_url: string;
+  demo_urls: string[];
   url: string;
   game_mode: string;
   winner_id: string;

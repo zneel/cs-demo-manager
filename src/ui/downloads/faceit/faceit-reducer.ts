@@ -13,6 +13,8 @@ import {
   downloadDemoError,
 } from '../downloads-actions';
 import { DownloadSource } from 'csdm/common/download/download-types';
+import type { DownloadIdentity } from 'csdm/common/download/download-types';
+import { getDemosDownloadStatus } from 'csdm/common/download/get-demos-download-status';
 import { abortDownload, abortDownloads } from '../pending/pending-actions';
 import { downloadFolderChanged } from '../../settings/settings-actions';
 import { accountAdded, fetchLastMatchesStart, accountsUpdated, matchSelected } from './faceit-actions';
@@ -34,6 +36,22 @@ const initialState: FaceitState = {
   errorCode: undefined,
   selectedMatchId: undefined,
 };
+
+// A match may hold several demos (i.e. a best of 3), the status of the match summarizes the status of each of them.
+function updateDemoStatus(state: FaceitState, { id, matchId }: DownloadIdentity, status: DownloadStatus) {
+  const match = state.matches.find((match) => match.id === matchId);
+  if (match === undefined) {
+    return;
+  }
+
+  const demo = match.demos.find((demo) => demo.id === id);
+  if (demo === undefined) {
+    return;
+  }
+
+  demo.downloadStatus = status;
+  match.downloadStatus = getDemosDownloadStatus(match.demos.map((demo) => demo.downloadStatus));
+}
 
 export const faceitReducer = createReducer(initialState, (builder) => {
   builder
@@ -60,47 +78,32 @@ export const faceitReducer = createReducer(initialState, (builder) => {
           continue;
         }
 
-        const match = state.matches.find((match) => match.id === download.matchId);
-        if (match !== undefined) {
-          match.downloadStatus = DownloadStatus.Downloading;
-        }
+        updateDemoStatus(state, download, DownloadStatus.Downloading);
       }
     })
     .addCase(downloadDemoSuccess, (state, action) => {
-      const match = state.matches.find((match) => match.id === action.payload.download.matchId);
-      if (match !== undefined) {
-        match.downloadStatus = DownloadStatus.Downloaded;
-      }
+      updateDemoStatus(state, action.payload.download, DownloadStatus.Downloaded);
     })
     .addCase(downloadDemoExpired, (state, action) => {
-      const match = state.matches.find((match) => match.id === action.payload.matchId);
-      if (match !== undefined) {
-        match.downloadStatus = DownloadStatus.Expired;
-      }
+      updateDemoStatus(state, action.payload, DownloadStatus.Expired);
     })
     .addCase(downloadDemoCorrupted, (state, action) => {
-      const match = state.matches.find((match) => match.id === action.payload.matchId);
-      if (match !== undefined) {
-        match.downloadStatus = DownloadStatus.Corrupted;
-      }
+      updateDemoStatus(state, action.payload, DownloadStatus.Corrupted);
     })
     .addCase(downloadDemoError, (state, action) => {
-      const match = state.matches.find((match) => match.id === action.payload.matchId);
-      if (match !== undefined) {
-        match.downloadStatus = DownloadStatus.Error;
-      }
+      updateDemoStatus(state, action.payload, DownloadStatus.Error);
     })
     .addCase(abortDownload, (state, action) => {
-      const match = state.matches.find((match) => match.id === action.payload.matchId);
-      if (match !== undefined) {
-        match.downloadStatus = DownloadStatus.NotDownloaded;
-      }
+      updateDemoStatus(state, action.payload, DownloadStatus.NotDownloaded);
     })
     .addCase(abortDownloads, (state) => {
       for (const match of state.matches) {
-        if (match.downloadStatus === DownloadStatus.Downloading) {
-          match.downloadStatus = DownloadStatus.NotDownloaded;
+        for (const demo of match.demos) {
+          if (demo.downloadStatus === DownloadStatus.Downloading) {
+            demo.downloadStatus = DownloadStatus.NotDownloaded;
+          }
         }
+        match.downloadStatus = getDemosDownloadStatus(match.demos.map((demo) => demo.downloadStatus));
       }
     })
     .addCase(initializeAppSuccess, (state, action) => {

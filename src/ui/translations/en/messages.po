@@ -3001,6 +3001,14 @@ msgctxt "Button"
 msgid "See on FACEIT"
 msgstr "See on FACEIT"
 
+#: src/ui/downloads/faceit/demos.tsx
+msgid "Demos"
+msgstr "Demos"
+
+#: src/ui/downloads/faceit/demos.tsx
+msgid "Map {position}"
+msgstr "Map {position}"
+
 #: src/ui/downloads/faceit/last-matches-loader.tsx
 #: src/ui/downloads/five-eplay/5eplay-last-matches-loader.tsx
 #: src/ui/downloads/renown/last-matches-loader.tsx
@@ -3245,12 +3253,24 @@ msgid "Pending downloads"
 msgstr "Pending downloads"
 
 #: src/ui/downloads/pending/download-actions.tsx
-msgid "The downloaded demo is corrupted. You can retry later."
-msgstr "The downloaded demo is corrupted. You can retry later."
+msgid "Your FACEIT API key is not allowed to download demos. It requires access to the FACEIT Download API, you can request it from the FACEIT downloads settings."
+msgstr "Your FACEIT API key is not allowed to download demos. It requires access to the FACEIT Download API, you can request it from the FACEIT downloads settings."
+
+#: src/ui/downloads/pending/download-actions.tsx
+msgid "The demo is not available on FACEIT anymore."
+msgstr "The demo is not available on FACEIT anymore."
+
+#: src/ui/downloads/pending/download-actions.tsx
+msgid "FACEIT returned an error while retrieving the demo download link."
+msgstr "FACEIT returned an error while retrieving the demo download link."
 
 #: src/ui/downloads/pending/download-actions.tsx
 msgid "An error occurred while downloading the demo."
 msgstr "An error occurred while downloading the demo."
+
+#: src/ui/downloads/pending/download-actions.tsx
+msgid "The downloaded demo is corrupted. You can retry later."
+msgstr "The downloaded demo is corrupted. You can retry later."
 
 #: src/ui/downloads/pending/pending-downloads-list.tsx
 msgid "No pending downloads."
@@ -3342,6 +3362,11 @@ msgstr "Error on download"
 msgctxt "Download status"
 msgid "Not downloaded"
 msgstr "Not downloaded"
+
+#: src/ui/downloads/sidebar/match-download-status.tsx
+msgctxt "Download status"
+msgid "Partially downloaded"
+msgstr "Partially downloaded"
 
 #: src/ui/downloads/sidebar/match-download-status.tsx
 msgctxt "Download status"

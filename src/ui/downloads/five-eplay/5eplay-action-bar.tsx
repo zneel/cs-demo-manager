@@ -54,6 +54,7 @@ function DownloadAllButton() {
       fileName: match.id,
       game: match.game,
       match: match,
+      id: match.id,
       matchId: match.id,
       source: DownloadSource['5EPlay'],
     };

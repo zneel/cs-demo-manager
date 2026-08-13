@@ -3,22 +3,22 @@ import fs from 'fs-extra';
 import { DownloadStatus } from 'csdm/common/types/download-status';
 import { isDownloadLinkExpired } from 'csdm/node/download/is-download-link-expired';
 
-async function isDemoInDownloadFolder(downloadFolderPath: string | undefined, matchId: string | number) {
+async function isDemoInDownloadFolder(downloadFolderPath: string | undefined, fileName: string | number) {
   if (downloadFolderPath === undefined) {
     return false;
   }
 
-  const demoPath = path.join(downloadFolderPath, `${matchId}.dem`);
+  const demoPath = path.join(downloadFolderPath, `${fileName}.dem`);
 
   return fs.pathExists(demoPath);
 }
 
 export async function getDownloadStatus(
   downloadFolderPath: string | undefined,
-  matchId: string | number,
+  fileName: string | number,
   demoUrl: string,
 ) {
-  const demoExists = await isDemoInDownloadFolder(downloadFolderPath, matchId);
+  const demoExists = await isDemoInDownloadFolder(downloadFolderPath, fileName);
   if (demoExists) {
     return DownloadStatus.Downloaded;
   }
@@ -31,13 +31,14 @@ export async function getDownloadStatus(
   return DownloadStatus.NotDownloaded;
 }
 
-// Some providers protect their demos links, the only way to know if a link is still valid is to try to download it.
+// Some providers protect their demos links, they can't be reached with a simple HEAD request and the only way to know
+// if a link is still valid is to try to download it.
 export async function getProtectedDemoDownloadStatus(
   downloadFolderPath: string | undefined,
-  matchId: string | number,
+  fileName: string | number,
   demoUrl: string,
 ) {
-  const demoExists = await isDemoInDownloadFolder(downloadFolderPath, matchId);
+  const demoExists = await isDemoInDownloadFolder(downloadFolderPath, fileName);
   if (demoExists) {
     return DownloadStatus.Downloaded;
   }

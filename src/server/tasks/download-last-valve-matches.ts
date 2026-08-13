@@ -24,7 +24,7 @@ export async function downloadLastValveMatches() {
       fetchLastValveMatches(onSteamIdDetected),
       fetchDownloadHistories(),
     ]);
-    const downladedMatchIds = downloadHistories.map((history) => history.match_id);
+    const downladedMatchIds = downloadHistories.map((history) => history.download_id);
     const matchesToDownload = lastMatches.filter((match) => {
       return match.downloadStatus === DownloadStatus.NotDownloaded && !downladedMatchIds.includes(match.id);
     });
