@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import clsx from 'clsx';
 import type { PinnedPlayer } from 'csdm/common/types/pinned-player';
-import { Avatar } from 'csdm/ui/components/avatar';
 
 const SIZE_IN_PIXELS = 24;
 
@@ -37,10 +36,19 @@ type Props = {
   player: PinnedPlayer;
 };
 
-// Steam avatars are missing when the Steam API is unreachable or when the account has never been synced, initials are
-// used instead so that pinned players remain distinguishable in the left bar.
+// Steam avatars are missing when the Steam API is unreachable or when the account has never been synced, and their URL
+// may also be outdated since Steam changes it when a player updates its avatar.
+// Initials are used in both cases, the shared default avatar would make all pinned players look the same.
 export function PinnedPlayerAvatar({ player }: Props) {
-  if (player.avatar === null || player.avatar === '') {
+  // Holding the URL rather than a boolean resets the fallback once the player gets a new avatar.
+  const [unreachableAvatarUrl, setUnreachableAvatarUrl] = useState<string | null>(null);
+  const hasAvatar = player.avatar !== null && player.avatar !== '' && player.avatar !== unreachableAvatarUrl;
+
+  const onError = () => {
+    setUnreachableAvatarUrl(player.avatar);
+  };
+
+  if (!hasAvatar) {
     return (
       <div
         className={clsx(
@@ -57,5 +65,15 @@ export function PinnedPlayerAvatar({ player }: Props) {
     );
   }
 
-  return <Avatar avatarUrl={player.avatar} size={SIZE_IN_PIXELS} />;
+  return (
+    <img
+      className="border border-gray-300"
+      src={player.avatar ?? undefined}
+      onError={onError}
+      style={{
+        width: SIZE_IN_PIXELS,
+        height: SIZE_IN_PIXELS,
+      }}
+    />
+  );
 }

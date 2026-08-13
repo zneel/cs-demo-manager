@@ -49,6 +49,24 @@ describe('Pinned player link', () => {
     expect(html).toContain('href="/players/76561198000123456"');
   });
 
+  it('renders the avatar of each player rather than a shared one', () => {
+    const first: PinnedPlayer = { steamId: '76561198000123456', name: 'ZywOo', avatar: 'https://avatars/first.jpg' };
+    const second: PinnedPlayer = { steamId: '76561198044556677', name: 's1mple', avatar: 'https://avatars/second.jpg' };
+
+    const html = render(
+      '/matches',
+      createElement(
+        'div',
+        null,
+        createElement(PinnedPlayerLink, { key: first.steamId, player: first }),
+        createElement(PinnedPlayerLink, { key: second.steamId, player: second }),
+      ),
+    );
+
+    expect(html).toContain('src="https://avatars/first.jpg"');
+    expect(html).toContain('src="https://avatars/second.jpg"');
+  });
+
   it('highlights the link only when the player profile is the active route', () => {
     const activeHtml = render('/players/76561198000123456/charts', createElement(PinnedPlayerLink, { player }));
     const inactiveHtml = render('/matches', createElement(PinnedPlayerLink, { player }));
