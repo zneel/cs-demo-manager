@@ -20,12 +20,7 @@ function getErrorMessage(errorCode: ErrorCode | undefined) {
   switch (errorCode) {
     case ErrorCode.FaceItApiForbidden:
     case ErrorCode.FaceItApiUnauthorized:
-      return (
-        <Trans>
-          Your FACEIT API key is not allowed to download demos. It requires access to the FACEIT Download API, you can
-          request it from the FACEIT downloads settings.
-        </Trans>
-      );
+      return <Trans>Your FACEIT API key is not allowed to use the FACEIT Download API.</Trans>;
     case ErrorCode.FaceItApiResourceNotFound:
       return <Trans>The demo is not available on FACEIT anymore.</Trans>;
     case ErrorCode.FaceItApiError:
@@ -81,7 +76,7 @@ export function DownloadActions({ download, demoFileName }: Props) {
       break;
     case DownloadStatus.Error:
       statusIcon = <ExclamationTriangleIcon className="w-16 text-red-400" />;
-      bottomContent = <p>{getErrorMessage(errorCode)}</p>;
+      bottomContent = <p className="text-right">{getErrorMessage(errorCode)}</p>;
       break;
     default:
       statusIcon = <PendingIcon className="w-16 text-gray-900" />;

@@ -3253,8 +3253,8 @@ msgid "Pending downloads"
 msgstr "Pending downloads"
 
 #: src/ui/downloads/pending/download-actions.tsx
-msgid "Your FACEIT API key is not allowed to download demos. It requires access to the FACEIT Download API, you can request it from the FACEIT downloads settings."
-msgstr "Your FACEIT API key is not allowed to download demos. It requires access to the FACEIT Download API, you can request it from the FACEIT downloads settings."
+msgid "Your FACEIT API key is not allowed to use the FACEIT Download API."
+msgstr "Your FACEIT API key is not allowed to use the FACEIT Download API."
 
 #: src/ui/downloads/pending/download-actions.tsx
 msgid "The demo is not available on FACEIT anymore."
