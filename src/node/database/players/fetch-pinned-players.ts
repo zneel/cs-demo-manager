@@ -3,22 +3,36 @@ import { db } from '../database';
 import { buildSteamAccountsFromSteamIds } from '../steam-accounts/build-steam-accounts-from-steam-ids';
 import { insertSteamAccounts } from '../steam-accounts/insert-steam-accounts';
 
-// Players can be pinned from places where they don't have any analyzed demo yet (Valve/FACEIT last matches
-// scoreboards…), their name and avatar are then only available through the Steam API.
-async function insertMissingSteamAccounts(steamIds: string[]) {
-  const rows = await db.selectFrom('steam_accounts').select('steam_id').where('steam_id', 'in', steamIds).execute();
-  const missingSteamIds = steamIds.filter((steamId) => {
-    return !rows.some((row) => {
+// Same expiration than the periodic sync with Steam done by the checkForNewBannedSteamAccounts task.
+const STEAM_PROFILE_EXPIRATION_IN_MILLISECONDS = 3600 * 24 * 1000;
+
+// Pinned players are displayed with their Steam profile name and avatar.
+// The account is missing when the player has no analyzed demo yet (pinned from a Valve/FACEIT scoreboard…) and it may
+// be outdated since Steam changes the avatar URL when a player updates its avatar.
+// Only a few players are pinned, refreshing their profile is cheap and doesn't depend on the periodic sync with Steam
+// which updates every known account at once and may be skipped or rate limited.
+async function updateOutdatedSteamProfiles(steamIds: string[]) {
+  const rows = await db
+    .selectFrom('steam_accounts')
+    .select(['steam_id', 'updated_at'])
+    .where('steam_id', 'in', steamIds)
+    .execute();
+
+  const outdatedSteamIds = steamIds.filter((steamId) => {
+    const row = rows.find((row) => {
       return row.steam_id === steamId;
     });
+
+    return row === undefined || Date.now() - row.updated_at.getTime() >= STEAM_PROFILE_EXPIRATION_IN_MILLISECONDS;
   });
 
-  if (missingSteamIds.length === 0) {
+  if (outdatedSteamIds.length === 0) {
     return;
   }
 
-  const steamAccounts = await buildSteamAccountsFromSteamIds(missingSteamIds);
+  const steamAccounts = await buildSteamAccountsFromSteamIds(outdatedSteamIds);
   if (steamAccounts.length > 0) {
+    // Rows are upserted, the updated_at column is bumped by a trigger which makes the next refresh happen a day later.
     await insertSteamAccounts(steamAccounts);
   }
 }
@@ -55,10 +69,11 @@ export async function fetchPinnedPlayers(steamIds: string[]): Promise<PinnedPlay
   }
 
   try {
-    await insertMissingSteamAccounts(steamIds);
+    await updateOutdatedSteamProfiles(steamIds);
   } catch (error) {
-    // The Steam API may be unreachable or rate limited, it's not a reason to not display pinned players.
-    logger.warn('Error while fetching Steam accounts of pinned players');
+    // The Steam API may be unreachable, rate limited or the Steam API key may be invalid, it's not a reason to not
+    // display pinned players. The name and avatar previously stored are used, or the player initials as a last resort.
+    logger.warn('Error while fetching the Steam profiles of pinned players');
     logger.warn(error);
   }
 
