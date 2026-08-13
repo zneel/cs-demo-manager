@@ -22,7 +22,8 @@ function getErrorMessage(errorCode: ErrorCode | undefined) {
     case ErrorCode.FaceItApiUnauthorized:
       return <Trans>Your FACEIT API key is not allowed to use the FACEIT Download API.</Trans>;
     case ErrorCode.FaceItApiResourceNotFound:
-      return <Trans>The demo is not available on FACEIT anymore.</Trans>;
+      // FACEIT populates the demo's link before the demo is uploaded, it may not be available yet.
+      return <Trans>The demo is not available on FACEIT, it may not have been uploaded yet.</Trans>;
     case ErrorCode.FaceItApiError:
     case ErrorCode.FaceItApiInvalidRequest:
       return <Trans>FACEIT returned an error while retrieving the demo download link.</Trans>;

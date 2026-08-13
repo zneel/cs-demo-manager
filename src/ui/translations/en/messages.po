@@ -3257,8 +3257,8 @@ msgid "Your FACEIT API key is not allowed to use the FACEIT Download API."
 msgstr "Your FACEIT API key is not allowed to use the FACEIT Download API."
 
 #: src/ui/downloads/pending/download-actions.tsx
-msgid "The demo is not available on FACEIT anymore."
-msgstr "The demo is not available on FACEIT anymore."
+msgid "The demo is not available on FACEIT, it may not have been uploaded yet."
+msgstr "The demo is not available on FACEIT, it may not have been uploaded yet."
 
 #: src/ui/downloads/pending/download-actions.tsx
 msgid "FACEIT returned an error while retrieving the demo download link."
