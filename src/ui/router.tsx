@@ -9,7 +9,7 @@ import { DemoLoader } from 'csdm/ui/demo/demo-loader';
 import { PlayerMaps } from 'csdm/ui/player/maps/player-maps';
 import { Players } from 'csdm/ui/players/players';
 import { Player } from 'csdm/ui/player/player';
-import { PinnedPlayer } from 'csdm/ui/player/pinned-player';
+import { PinnedPlayers } from 'csdm/ui/player/pinned-players';
 import { PlayerOverview } from 'csdm/ui/player/overview/player-overview';
 import { PlayerCharts } from 'csdm/ui/player/charts/player-charts';
 import { PlayerMatchesTable } from 'csdm/ui/player/matches/player-matches-table';
@@ -56,7 +56,7 @@ import { PlayerHeatmap } from './player/heatmap/player-heatmap';
 export const router = createHashRouter(
   createRoutesFromElements(
     <Route path="/" element={<Root />} errorElement={<ErrorBoundary />}>
-      <Route path={RoutePath.PinnerPlayer} element={<PinnedPlayer />} />
+      <Route path={RoutePath.PinnedPlayers} element={<PinnedPlayers />} />
       <Route path={RoutePath.Matches} element={<Matches />} />
       <Route path={`${RoutePath.Matches}/:checksum`} element={<MatchLoader />}>
         <Route index={true} element={<MatchOverview />} />

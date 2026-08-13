@@ -885,6 +885,11 @@ msgstr "Open Steam community profile"
 
 #: src/ui/components/context-menu/items/pin-player-item.tsx
 msgctxt "Context menu"
+msgid "Unpin this player"
+msgstr "Unpin this player"
+
+#: src/ui/components/context-menu/items/pin-player-item.tsx
+msgctxt "Context menu"
 msgid "Pin this player"
 msgstr "Pin this player"
 
@@ -3717,10 +3722,10 @@ msgctxt "Tooltip"
 msgid "Matches"
 msgstr "Matches"
 
-#: src/ui/left-bar/pinned-player-link.tsx
+#: src/ui/left-bar/pinned-players-links.tsx
 msgctxt "Tooltip"
-msgid "Pinned player"
-msgstr "Pinned player"
+msgid "Pinned players"
+msgstr "Pinned players"
 
 #: src/ui/left-bar/players-link.tsx
 msgctxt "Tooltip"
@@ -6583,13 +6588,13 @@ msgstr "Private"
 msgid "Public"
 msgstr "Public"
 
-#: src/ui/player/pinned-player.tsx
+#: src/ui/player/pinned-players.tsx
 msgid "No pinned player found."
 msgstr "No pinned player found."
 
-#: src/ui/player/pinned-player.tsx
-msgid "You can pin a player from scoreboards or the players list."
-msgstr "You can pin a player from scoreboards or the players list."
+#: src/ui/player/pinned-players.tsx
+msgid "You can pin players from scoreboards or the players list."
+msgstr "You can pin players from scoreboards or the players list."
 
 #: src/ui/player/player-loader.tsx
 msgid "Loading player…"

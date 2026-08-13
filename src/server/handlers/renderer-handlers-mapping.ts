@@ -79,6 +79,8 @@ import { writeBase64FileHandler } from './renderer-process/filesystem/write-base
 import type { UpdateDemosSourcePayload } from './renderer-process/demo/update-demos-source-handler';
 import { updateDemosSourceHandler } from './renderer-process/demo/update-demos-source-handler';
 import { fetchPlayerHandler, type FetchPlayerPayload } from './renderer-process/player/fetch-player-handler';
+import { fetchPinnedPlayersHandler } from './renderer-process/player/fetch-pinned-players-handler';
+import type { PinnedPlayer } from 'csdm/common/types/pinned-player';
 import { resetDatabaseHandler } from './renderer-process/database/reset-database-handler';
 import { updateTagHandler } from './renderer-process/tags/update-tag-handler';
 import { deleteTagHandler } from './renderer-process/tags/delete-tag-handler';
@@ -249,6 +251,7 @@ export interface RendererMessageHandlers {
   [RendererClientMessageName.LoadDemoByPath]: Handler<string, Demo>;
   [RendererClientMessageName.NavigateToDemoOrMatch]: Handler<string>;
   [RendererClientMessageName.FetchPlayersTable]: Handler<PlayersTableFilter, PlayerTable[]>;
+  [RendererClientMessageName.FetchPinnedPlayers]: Handler<string[], PinnedPlayer[]>;
   [RendererClientMessageName.FetchTeamsTable]: Handler<TeamsTableFilter, TeamTable[]>;
   [RendererClientMessageName.FetchTeam]: Handler<TeamFilters, TeamProfile>;
   [RendererClientMessageName.AddDemosToAnalyses]: Handler<Demo[]>;
@@ -377,6 +380,7 @@ export const rendererHandlers: RendererMessageHandlers = {
   [RendererClientMessageName.LoadDemoByPath]: loadDemoHandler,
   [RendererClientMessageName.NavigateToDemoOrMatch]: navigateToDemoOrMatch,
   [RendererClientMessageName.FetchPlayersTable]: fetchPlayersHandler,
+  [RendererClientMessageName.FetchPinnedPlayers]: fetchPinnedPlayersHandler,
   [RendererClientMessageName.FetchTeamsTable]: fetchTeamsTableHandler,
   [RendererClientMessageName.FetchTeam]: fetchTeamHandler,
   [RendererClientMessageName.AddDemosToAnalyses]: addDemosToAnalysesHandler,

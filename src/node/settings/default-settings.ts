@@ -32,7 +32,7 @@ export const defaultSettings: Settings = {
     endDate: undefined,
     analysisStatus: AnalysisStatusFilter.All,
   },
-  pinnedPlayerSteamId: '',
+  pinnedPlayerSteamIds: [],
   steamApiKey: '',
   faceitApiKey: '',
   ui: {

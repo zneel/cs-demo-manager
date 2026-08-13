@@ -185,7 +185,7 @@ export type Settings = {
   analyze: AnalyzeSettings;
   playback: PlaybackSettings;
   playerProfile: PlayerProfileSettings;
-  pinnedPlayerSteamId: string;
+  pinnedPlayerSteamIds: string[];
   video: VideoSettings;
   download: DownloadSettings;
   matches: MatchesSettings;

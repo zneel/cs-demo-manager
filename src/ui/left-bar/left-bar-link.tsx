@@ -4,7 +4,8 @@ import { NavLink } from 'react-router';
 import { LeftBarTooltip } from './left-bar-tooltip';
 
 type Props = {
-  icon: ReactNode;
+  // A function can be provided to render an icon that depends on the link's active state.
+  icon: ReactNode | ((isActive: boolean) => ReactNode);
   tooltip: ReactNode;
   url: string;
   onClick?: (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
@@ -23,7 +24,9 @@ export function LeftBarLink({ url, tooltip, icon, onClick }: Props) {
         }}
         viewTransition={true}
       >
-        <div className="flex w-32 justify-center">{icon}</div>
+        {({ isActive }) => {
+          return <div className="flex w-32 justify-center">{typeof icon === 'function' ? icon(isActive) : icon}</div>;
+        }}
       </NavLink>
     </LeftBarTooltip>
   );

@@ -1,7 +1,7 @@
 import { useSettings } from './use-settings';
 
-export function usePinnedPlayerSteamId() {
+export function usePinnedPlayerSteamIds() {
   const settings = useSettings();
 
-  return settings.pinnedPlayerSteamId;
+  return settings.pinnedPlayerSteamIds;
 }
