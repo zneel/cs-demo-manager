@@ -26,7 +26,7 @@ export function ThirdPartySettings({
         <h2 className="text-subtitle">{name}</h2>
         {logo}
       </div>
-      {warning && <div className="py-8">{warning}</div>}
+      {warning}
       <AutoDownloadThirdPartyDemos name={name} settingsKey={autoDownloadAtStartupSettingsKey} />
       <AutoDownloadThirdPartyDemosBackground name={name} settingsKey={autoDownloadInBackgroundSettingsKey} />
       {children}

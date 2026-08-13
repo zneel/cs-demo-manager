@@ -1,5 +1,5 @@
 import type { FaceitMatch, FaceitPlayer, FaceitTeam } from 'csdm/common/types/faceit-match';
-import { getDownloadStatus } from 'csdm/node/download/get-download-status';
+import { getProtectedDemoDownloadStatus } from 'csdm/node/download/get-download-status';
 import type { FaceitMatchPlayerRow } from './faceit-match-player-table';
 import type { FaceitMatchRow } from './faceit-match-table';
 import type { FaceitMatchTeamRow } from './faceit-match-team-table';
@@ -55,6 +55,6 @@ export async function faceitMatchRowToFaceitMatch(
     winnerName: row.winner_name,
     players: playerRows.map(playerRowToPlayer),
     teams: teamRows.map(teamRowToTeam),
-    downloadStatus: await getDownloadStatus(downloadFolderPath, row.id, row.demo_url),
+    downloadStatus: await getProtectedDemoDownloadStatus(downloadFolderPath, row.id, row.demo_url),
   };
 }

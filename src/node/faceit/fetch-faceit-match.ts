@@ -6,7 +6,7 @@ import type { FaceitMatchStatsDTO } from 'csdm/node/faceit-web-api/fetch-match-s
 import { fetchMatch } from 'csdm/node/faceit-web-api/fetch-match';
 import type { FaceitFactionDTO } from 'csdm/node/faceit-web-api/fetch-match';
 import type { FaceitFactionV1DTO } from 'csdm/node/faceit-web-api/fetch-match';
-import { getDownloadStatus } from 'csdm/node/download/get-download-status';
+import { getProtectedDemoDownloadStatus } from 'csdm/node/download/get-download-status';
 import { unixTimestampToDate } from 'csdm/common/date/unix-timestamp-to-date';
 import { Game } from 'csdm/common/types/counter-strike';
 
@@ -87,13 +87,16 @@ async function buildFaceitMatchFromFaceitDTOs(
 
   let demoUrl = '';
   const demoUrls = matchDTO.demo_url;
-  // FACEIT demos links are now private and require access to the "Downloads API".
-  // https://docs.faceit.com/getting-started/Guides/download-api
-  // I sent an access request the 24/11/2023 but in the meantime FACEIT downloads will not work.
+  // FACEIT demos links are private, they can be downloaded only through the "Download API" with an API key that has
+  // been granted access to it. https://docs.faceit.com/getting-started/Guides/download-api
   if (demoUrls !== undefined && demoUrls.length > 0) {
     demoUrl = demoUrls[0];
   }
-  const downloadStatus: DownloadStatus = await getDownloadStatus(downloadFolderPath, matchDTO.match_id, demoUrl);
+  const downloadStatus: DownloadStatus = await getProtectedDemoDownloadStatus(
+    downloadFolderPath,
+    matchDTO.match_id,
+    demoUrl,
+  );
 
   // Remove potential workshop identifier prefix from map's name (i.e workshop/id/map_name).
   const workshopRegex = /workshop\/(\d+\/)(?<mapName>.*)/;

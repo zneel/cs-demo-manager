@@ -24,7 +24,10 @@ export function IntegrationsSettings() {
             <Trans>FACEIT API key</Trans>
           </p>
           <p>
-            <Trans>Custom FACEIT API key used to retrieve information from FACEIT</Trans>
+            <Trans>
+              Custom FACEIT API key used to retrieve information from FACEIT. It's also used to download demos if it has
+              been granted access to the FACEIT Download API.
+            </Trans>
           </p>
         </div>
         <FaceitApiKey />

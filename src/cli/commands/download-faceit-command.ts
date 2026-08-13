@@ -6,8 +6,11 @@ import zlib from 'node:zlib';
 import util from 'node:util';
 import { fetchCurrentFaceitAccount } from 'csdm/node/database/faceit-account/fetch-current-faceit-account';
 import { fetchLastFaceitMatches } from 'csdm/node/faceit/fetch-last-faceit-matches';
-import { isDownloadLinkExpired } from 'csdm/node/download/is-download-link-expired';
 import { fetchFaceitAccount } from 'csdm/node/faceit-web-api/fetch-faceit-account';
+import { fetchDemoDownloadUrl } from 'csdm/node/faceit-web-api/fetch-demo-download-url';
+import { getFaceitApiKey } from 'csdm/node/faceit-web-api/get-faceit-api-key';
+import { FaceitForbiddenError } from 'csdm/node/faceit-web-api/errors/faceit-forbidden-error';
+import { FaceitUnauthorized } from 'csdm/node/faceit-web-api/errors/faceit-unauthorized';
 import type { FaceitMatch } from 'csdm/common/types/faceit-match';
 import { DownloadBaseCommand } from './download-base-command';
 const streamPipeline = util.promisify(pipeline);
@@ -53,11 +56,6 @@ export class DownloadFaceitCommand extends DownloadBaseCommand {
   }
 
   public async run() {
-    console.warn(
-      `This command is currently disabled, see https://cs-demo-manager.com/docs/guides/downloads#why-faceit-downloads-are-disabled.`,
-    );
-    return;
-    // oxlint-disable no-unreachable
     this.parseArgs();
 
     this.outputFolderPath = await this.getOutputFolder();
@@ -69,7 +67,6 @@ export class DownloadFaceitCommand extends DownloadBaseCommand {
     for (const match of matches) {
       await this.processMatch(match);
     }
-    // oxlint-enable no-unreachable
   }
 
   protected parseArgs() {
@@ -116,15 +113,28 @@ export class DownloadFaceitCommand extends DownloadBaseCommand {
       return;
     }
 
-    const isLinkExpired = await isDownloadLinkExpired(match.demoUrl);
-    if (isLinkExpired) {
-      console.log(`Demo link expired for match: ${match.id}`);
+    if (match.demoUrl === '') {
+      console.log(`No demo available for match: ${match.id}`);
+      return;
+    }
+
+    let downloadUrl: string;
+    try {
+      const apiKey = await getFaceitApiKey();
+      downloadUrl = await fetchDemoDownloadUrl(match.demoUrl, apiKey);
+    } catch (error) {
+      console.log(`Failed to retrieve the demo download link of match: ${match.id}`);
+      if (error instanceof FaceitForbiddenError || error instanceof FaceitUnauthorized) {
+        console.log(
+          'Your FACEIT API key is not allowed to access the FACEIT Download API, see https://docs.faceit.com/getting-started/Guides/download-api',
+        );
+      }
       return;
     }
 
     console.log(`Downloading ${match.demoUrl}...`);
     this.demoPathBeingDownloaded = demoPath;
-    const response = await request(match.demoUrl, { method: 'GET' });
+    const response = await request(downloadUrl, { method: 'GET' });
     if (!response.body) {
       console.log('Request error.');
       return;

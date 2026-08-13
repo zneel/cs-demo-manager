@@ -22,6 +22,8 @@ import { WriteDemoInfoFileError } from 'csdm/node/download/errors/write-info-fil
 import { insertDownloadHistory } from 'csdm/node/database/download-history/insert-download-history';
 import { InvalidDemoHeader } from 'csdm/node/demo/errors/invalid-demo-header';
 import { insertDemos } from 'csdm/node/database/demos/insert-demos';
+import { fetchDemoDownloadUrl } from 'csdm/node/faceit-web-api/fetch-demo-download-url';
+import { getFaceitApiKey } from 'csdm/node/faceit-web-api/get-faceit-api-key';
 const streamPipeline = util.promisify(pipeline);
 
 class DownloadDemoQueue {
@@ -40,7 +42,7 @@ class DownloadDemoQueue {
       throw new MatchAlreadyDownloaded();
     }
 
-    const downloadLinkExpired = await isDownloadLinkExpired(download.demoUrl);
+    const downloadLinkExpired = await this.isDemoLinkExpired(download);
     if (downloadLinkExpired) {
       throw new DownloadLinkExpired();
     }
@@ -74,7 +76,7 @@ class DownloadDemoQueue {
         continue;
       }
 
-      const downloadLinkExpired = await isDownloadLinkExpired(download.demoUrl);
+      const downloadLinkExpired = await this.isDemoLinkExpired(download);
       if (downloadLinkExpired) {
         continue;
       }
@@ -163,10 +165,11 @@ class DownloadDemoQueue {
     const demoPath = this.buildDemoPath(downloadFolderPath, currentDownload.fileName);
     const infoPath = this.buildDemoInfoFilePath(demoPath);
     try {
-      const url = new URL(currentDownload.demoUrl);
+      const url = new URL(await this.getDemoDownloadUrl(currentDownload));
       const client = new Client(url.origin).compose(interceptors.redirect({ maxRedirections: 1 }));
       const response = await client.request({
-        path: url.pathname,
+        // The path may contain a query string when the URL is a temporary signed link.
+        path: `${url.pathname}${url.search}`,
         signal: controller.signal,
         method: 'GET',
       });
@@ -296,6 +299,28 @@ class DownloadDemoQueue {
 
     return downloadFolderPath as string;
   }
+
+  // FACEIT demos links are private, they can't be checked nor downloaded without going through the "Download API",
+  // which requires an API key that has been granted access to it.
+  // https://docs.faceit.com/getting-started/Guides/download-api
+  private isDemoLinkExpired = async (download: Download) => {
+    if (download.source === DownloadSource.Faceit) {
+      return download.demoUrl === '';
+    }
+
+    return isDownloadLinkExpired(download.demoUrl);
+  };
+
+  // The link returned by the FACEIT "Download API" is temporary, it has to be retrieved right before downloading it.
+  private getDemoDownloadUrl = async (download: Download) => {
+    if (download.source !== DownloadSource.Faceit) {
+      return download.demoUrl;
+    }
+
+    const apiKey = await getFaceitApiKey();
+
+    return fetchDemoDownloadUrl(download.demoUrl, apiKey);
+  };
 
   private isMatchAlreadyInQueue(matchId: string): boolean {
     return (
